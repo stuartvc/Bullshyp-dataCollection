@@ -104,6 +104,11 @@ app.onResetButton = function()
 	app.resetData();
 };
 
+app.onLogButton = function()
+{
+	app.logData();
+};
+
 app.startConnectTimer = function()
 {
 	// If connection is not made within the timeout
@@ -443,6 +448,47 @@ app.resetData = function(test)
 	app.tableData[2]['maxValue'] = 0;
 	app.tableData[3]['maxValue'] = 0;
 };
+
+app.logData = function(string)
+{
+
+	function gotFS(fileSystem) {
+	    fileSystem.root.getFile("log.txt", {create: true, exclusive: false}, gotFileEntry, fail);
+	}
+
+	function gotFileEntry(fileEntry) {
+		console.log(fileEntry.fullPath);
+	    fileEntry.createWriter(gotFileWriter, fail);
+	}
+
+	function gotFileWriter(writer) {
+	    writer.onwriteend = function(evt) {
+	        console.log("written to file");
+	    };
+
+		writer.seek(writer.length);
+	    writer.write(collectData());
+	}
+
+	function collectData()
+	{
+		var string = "";
+		string += app.tableData[0]['maxValue'] + ",";
+		string += app.tableData[1]['maxValue'] + ",";
+		string += app.tableData[2]['maxValue'] + ",";
+		string += app.tableData[3]['maxValue'];
+		string += "\n";
+
+		return string;
+	}
+
+    function fail(error) {
+        console.log(error.code);
+    }
+
+    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, fail);
+
+}
 
 // Initialize the app.
 app.initialize();

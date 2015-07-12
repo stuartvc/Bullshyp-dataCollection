@@ -6,7 +6,8 @@
 // the identifier, the filesystem location 
 // or the URL
 var pluginlist = [
-    "com.evothings.ble"
+    "com.evothings.ble",
+    "org.apache.cordova.file"
 ];
  
 // no need to configure below
