@@ -98,6 +98,11 @@ app.onStopButton = function()
 	app.showInfo('Status: Stopped.');
 };
 
+app.onResetButton = function()
+{
+	app.resetData();
+};
+
 app.startConnectTimer = function()
 {
 	// If connection is not made within the timeout
@@ -408,14 +413,19 @@ app.keyPressHandler = function(values)
 {
 	if (values[0] == 3)
 	{
-		app.dataPoints.length = 0;
-		app.tableData[0]['currentValue'] = 0;
-		app.tableData[1]['currentValue'] = 0;
-		app.tableData[2]['currentValue'] = 0;
-		app.tableData[0]['maxValue'] = 0;
-		app.tableData[1]['maxValue'] = 0;
-		app.tableData[2]['maxValue'] = 0;
+		app.resetData();
 	}
+};
+
+app.resetData = function(test)
+{
+	app.dataPoints.length = 0;
+	app.tableData[0]['currentValue'] = 0;
+	app.tableData[1]['currentValue'] = 0;
+	app.tableData[2]['currentValue'] = 0;
+	app.tableData[0]['maxValue'] = 0;
+	app.tableData[1]['maxValue'] = 0;
+	app.tableData[2]['maxValue'] = 0;
 };
 
 // Initialize the app.
