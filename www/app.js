@@ -14,10 +14,13 @@ app.dataPoints = [];
  * Data that is displayed in table
  */
 app.tableData = [
-		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
-        { sensorName: 'y-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
-        { sensorName: 'z-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
-        { sensorName: 'total-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' }
+		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0},
+        { sensorName: 'y-accel', currentValue: 0, maxValue: 0},
+        { sensorName: 'z-accel', currentValue: 0, maxValue: 0},
+        { sensorName: 'total-accel', currentValue: 0, maxValue: 0},
+		{ sensorName: 'x-gyro', currentValue: 0, maxValue: 0},
+        { sensorName: 'y-gyro', currentValue: 0, maxValue: 0},
+        { sensorName: 'z-gyro', currentValue: 0, maxValue: 0}
         ];
 
 /**
@@ -256,7 +259,10 @@ app.startAccelerometerNotification = function(device)
 			app.showInfo('Status: Data stream active - accelerometer');
 			var dataArray = new Uint8Array(data);
 			var values = app.getAccelerometerValues(dataArray);
-			app.updateTable(values);
+			app.updateMapAccel(values);
+			var gyroValues = app.getGyroscopeValues(dataArray);
+			app.updateMapGyro(gyroValues);
+			app.updateTable();
 			app.drawDiagram(values);
 		},
 		function(errorCode)
@@ -312,6 +318,22 @@ app.getAccelerometerValues = function(data)
 
 	// Return result.
 	return { x: ax, y: ay, z: az };
+};
+
+/**
+ * Calculate accelerometer values from raw data for SensorTag 2.
+ * @param data - an Uint8Array.
+ * @return Object with fields: x, y, z.
+ */
+app.getGyroscopeValues = function(data)
+{
+	// Calculate gyroscope values.
+	var gx = evothings.util.littleEndianToInt16(data, 0) * 255.0 / 32768.0
+	var gy = evothings.util.littleEndianToInt16(data, 2) * 255.0 / 32768.0
+	var gz =  evothings.util.littleEndianToInt16(data, 4) * 255.0 / 32768.0
+
+	// Return result.
+	return { x: gx, y: gy, z: gz }
 };
 
 /**
@@ -392,40 +414,67 @@ app.updateTable = function(values)
         $('#' + 'table' + ' tbody').html(rows);
     }
     
-    function updateMap(newData) {
-    	app.tableData[0]['currentValue'] = newData.x.toFixed(4) * 8;
-    	app.tableData[1]['currentValue'] = newData.y.toFixed(4) * 8;
-    	app.tableData[2]['currentValue'] = newData.z.toFixed(4) * 8;
-    	app.tableData[3]['currentValue'] = calculateTotalAccel(newData).toFixed(4) * 8;
-
-    	if (app.tableData[0]['maxValue'] <= Math.abs(newData.x * 8))
-    	{
-    		app.tableData[0]['maxValue'] = Math.abs(newData.x.toFixed(4) * 8);
-    	}
-    	if (app.tableData[1]['maxValue'] <= Math.abs(newData.y * 8))
-    	{
-    		app.tableData[1]['maxValue'] = Math.abs(newData.y.toFixed(4) * 8);
-    	}
-    	if (app.tableData[2]['maxValue'] <= Math.abs(newData.z * 8))
-    	{
-    		app.tableData[2]['maxValue'] = Math.abs(newData.z.toFixed(4) * 8);
-    	}
-    	if (app.tableData[3]['maxValue'] <= calculateTotalAccel(newData) * 8)
-    	{
-    		app.tableData[3]['maxValue'] = calculateTotalAccel(newData).toFixed(4) * 8;
-    	}
-    	//averages
-    }
-
-    function calculateTotalAccel(vectorArray)
-    {
-    	return Math.sqrt(Math.pow(vectorArray.x, 2) + Math.pow(vectorArray.y, 2) + Math.pow(vectorArray.z, 2));
-    }
-
-
-
-    updateMap(values);
     loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
+};
+
+app.updateMapAccel = function(values) {
+			app.showInfo('a');
+	app.tableData[0]['currentValue'] = values.x.toFixed(4) * 8;
+			app.showInfo('b');
+	app.tableData[1]['currentValue'] = values.y.toFixed(4) * 8;
+			app.showInfo('c');
+	app.tableData[2]['currentValue'] = values.z.toFixed(4) * 8;
+			app.showInfo('d');
+	app.tableData[3]['currentValue'] = app.calculateTotalAccel(values).toFixed(4) * 8;
+			app.showInfo('e');
+
+	if (app.tableData[0]['maxValue'] <= Math.abs(values.x * 8))
+	{
+		app.tableData[0]['maxValue'] = Math.abs(values.x.toFixed(4) * 8);
+	}
+	if (app.tableData[1]['maxValue'] <= Math.abs(values.y * 8))
+	{
+		app.tableData[1]['maxValue'] = Math.abs(values.y.toFixed(4) * 8);
+	}
+	if (app.tableData[2]['maxValue'] <= Math.abs(values.z * 8))
+	{
+		app.tableData[2]['maxValue'] = Math.abs(values.z.toFixed(4) * 8);
+	}
+	if (app.tableData[3]['maxValue'] <= app.calculateTotalAccel(values) * 8)
+	{
+		app.tableData[3]['maxValue'] = app.calculateTotalAccel(values).toFixed(4) * 8;
+	}
+	//averages
+};
+
+app.calculateTotalAccel = function(vectorArray)
+{
+	return Math.sqrt(Math.pow(vectorArray.x, 2) + Math.pow(vectorArray.y, 2) + Math.pow(vectorArray.z, 2));
+};
+
+app.updateMapGyro = function(values) {
+	app.tableData[4]['currentValue'] = values.x.toFixed(4);
+	app.tableData[5]['currentValue'] = values.y.toFixed(4);
+	app.tableData[6]['currentValue'] = values.z.toFixed(4);
+	//app.tableData[7]['currentValue'] = calculateTotalAccel(values).toFixed(4) * 8;
+
+	if (app.tableData[4]['maxValue'] <= Math.abs(values.x))
+	{
+		app.tableData[4]['maxValue'] = Math.abs(values.x.toFixed(4));
+	}
+	if (app.tableData[5]['maxValue'] <= Math.abs(values.y))
+	{
+		app.tableData[5]['maxValue'] = Math.abs(values.y.toFixed(4));
+	}
+	if (app.tableData[6]['maxValue'] <= Math.abs(values.z))
+	{
+		app.tableData[6]['maxValue'] = Math.abs(values.z.toFixed(4));
+	}
+	/*if (app.tableData[7]['maxValue'] <= calculateTotalAccel(values) * 8)
+	{
+		app.tableData[7]['maxValue'] = calculateTotalAccel(values).toFixed(4) * 8;
+	}*/
+	//averages
 };
 
 app.keyPressHandler = function(values)
@@ -443,10 +492,16 @@ app.resetData = function(test)
 	app.tableData[1]['currentValue'] = 0;
 	app.tableData[2]['currentValue'] = 0;
 	app.tableData[3]['currentValue'] = 0;
+	app.tableData[4]['currentValue'] = 0;
+	app.tableData[5]['currentValue'] = 0;
+	app.tableData[6]['currentValue'] = 0;
 	app.tableData[0]['maxValue'] = 0;
 	app.tableData[1]['maxValue'] = 0;
 	app.tableData[2]['maxValue'] = 0;
 	app.tableData[3]['maxValue'] = 0;
+	app.tableData[4]['maxValue'] = 0;
+	app.tableData[5]['maxValue'] = 0;
+	app.tableData[6]['maxValue'] = 0;
 };
 
 app.logData = function(string)
