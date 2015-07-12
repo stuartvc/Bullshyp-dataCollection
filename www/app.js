@@ -11,6 +11,15 @@ var app = {};
 app.dataPoints = [];
 
 /**
+ * Data that is displayed in table
+ */
+app.tableData = [
+		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
+        { sensorName: 'y-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
+        { sensorName: 'z-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' }
+        ];
+
+/**
  * Timeout (ms) after which a message is shown if the SensorTag wasn't found.
  */
 app.CONNECT_TIMEOUT = 3000;
@@ -232,6 +241,7 @@ app.startAccelerometerNotification = function(device)
 			app.showInfo('Status: Data stream active - accelerometer');
 			var dataArray = new Uint8Array(data);
 			var values = app.getAccelerometerValues(dataArray);
+			app.updateTable(values);
 			app.drawDiagram(values);
 		},
 		function(errorCode)
@@ -311,6 +321,53 @@ app.drawDiagram = function(values)
 	drawLine('x', '#f00');
 	drawLine('y', '#0f0');
 	drawLine('z', '#00f');
+};
+
+/**
+ * Update table of sensor values.
+ * Values are expected to be between -1 and 1
+ * and in the form of objects with fields x, y, z.
+ */
+app.updateTable = function(values)
+{
+	var table = document.getElementById('table');
+
+    function loadTable(tableId, fields, data) {
+        //$('#' + tableId).empty(); //not really necessary
+        var rows = '';
+        $.each(data, function(index, item) {
+            var row = '<tr>';
+            $.each(fields, function(index, field) {
+                row += '<td>' + item[field+''] + '</td>';
+            });
+            rows += row + '</tr>';
+        });
+		var table = document.getElementById('table');
+        $('#' + 'table' + ' tbody').html(rows);
+    }
+    
+    function updateMap(newData) {
+    	app.tableData[0]['currentValue'] = values.x.toFixed(4) * 8;
+    	app.tableData[1]['currentValue'] = values.y.toFixed(4) * 8;
+    	app.tableData[2]['currentValue'] = values.z.toFixed(4) * 8;
+
+    	if (app.tableData[0]['maxValue'] <= values.x * 8)
+    	{
+    		app.tableData[0]['maxValue'] = values.x.toFixed(4) * 8;
+    	}
+    	if (app.tableData[1]['maxValue'] <= values.y * 8)
+    	{
+    		app.tableData[1]['maxValue'] = values.y.toFixed(4) * 8;
+    	}
+    	if (app.tableData[2]['maxValue'] <= values.z * 8)
+    	{
+    		app.tableData[2]['maxValue'] = values.z.toFixed(4) * 8;
+    	}
+    	//averages
+    }
+
+    updateMap(values);
+    loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
 };
 
 // Initialize the app.
