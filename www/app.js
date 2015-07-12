@@ -351,21 +351,20 @@ app.updateTable = function(values)
     	app.tableData[1]['currentValue'] = values.y.toFixed(4) * 8;
     	app.tableData[2]['currentValue'] = values.z.toFixed(4) * 8;
 
-    	if (app.tableData[0]['maxValue'] <= values.x * 8)
+    	if (app.tableData[0]['maxValue'] <= Math.abs(values.x * 8))
     	{
-    		app.tableData[0]['maxValue'] = values.x.toFixed(4) * 8;
+    		app.tableData[0]['maxValue'] = Math.abs(values.x.toFixed(4) * 8);
     	}
-    	if (app.tableData[1]['maxValue'] <= values.y * 8)
+    	if (app.tableData[1]['maxValue'] <= Math.abs(values.y * 8))
     	{
-    		app.tableData[1]['maxValue'] = values.y.toFixed(4) * 8;
+    		app.tableData[1]['maxValue'] = Math.abs(values.y.toFixed(4) * 8);
     	}
-    	if (app.tableData[2]['maxValue'] <= values.z * 8)
+    	if (app.tableData[2]['maxValue'] <= Math.abs(values.z * 8))
     	{
-    		app.tableData[2]['maxValue'] = values.z.toFixed(4) * 8;
+    		app.tableData[2]['maxValue'] = Math.abs(values.z.toFixed(4) * 8);
     	}
     	//averages
     }
-
     updateMap(values);
     loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
 };
