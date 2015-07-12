@@ -35,6 +35,9 @@ app.sensortag.MOVEMENT_DATA = 'f000aa81-0451-4000-b000-000000000000';
 app.sensortag.MOVEMENT_CONFIG = 'f000aa82-0451-4000-b000-000000000000';
 app.sensortag.MOVEMENT_PERIOD = 'f000aa83-0451-4000-b000-000000000000';
 app.sensortag.MOVEMENT_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb';
+app.sensortag.KEYPRESS_SERVICE = '0000ffe0-0000-1000-8000-00805f9b34fb'
+app.sensortag.KEYPRESS_DATA = '0000ffe1-0000-1000-8000-00805f9b34fb'
+app.sensortag.KEYPRESS_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb'
 
 /**
  * Initialise the application.
@@ -167,7 +170,8 @@ app.readServices = function(device)
 {
 	device.readServices(
 		[
-		app.sensortag.MOVEMENT_SERVICE // Movement service UUID.
+		app.sensortag.MOVEMENT_SERVICE, // Movement service UUID.
+		app.sensortag.KEYPRESS_SERVICE
 		],
 		// Function that monitors accelerometer data.
 		app.startAccelerometerNotification,
@@ -243,6 +247,37 @@ app.startAccelerometerNotification = function(device)
 			var values = app.getAccelerometerValues(dataArray);
 			app.updateTable(values);
 			app.drawDiagram(values);
+		},
+		function(errorCode)
+		{
+			console.log('Error: enableNotification: ' + errorCode + '.');
+		});
+
+	// Set button notification to ON.
+	device.writeDescriptor(
+		app.sensortag.KEYPRESS_DATA,
+		app.sensortag.KEYPRESS_NOTIFICATION, // Notification descriptor.
+		new Uint8Array([1,0]),
+		function()
+		{
+			console.log('Status: writeDescriptor ok.');
+		},
+		function(errorCode)
+		{
+			// This error will happen on iOS, since this descriptor is not
+			// listed when requesting descriptors. On iOS you are not allowed
+			// to use the configuration descriptor explicitly. It should be
+			// safe to ignore this error.
+			console.log('Error: writeDescriptor: ' + errorCode + '.');
+		});
+
+	// Start button notification.
+	device.enableNotification(
+		app.sensortag.KEYPRESS_DATA,
+		function(data)
+		{
+			var dataArray = new Uint8Array(data);
+			app.keyPressHandler(dataArray);
 		},
 		function(errorCode)
 		{
@@ -367,6 +402,20 @@ app.updateTable = function(values)
     }
     updateMap(values);
     loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
+};
+
+app.keyPressHandler = function(values)
+{
+	if (values[0] == 3)
+	{
+		app.dataPoints.length = 0;
+		app.tableData[0]['currentValue'] = 0;
+		app.tableData[1]['currentValue'] = 0;
+		app.tableData[2]['currentValue'] = 0;
+		app.tableData[0]['maxValue'] = 0;
+		app.tableData[1]['maxValue'] = 0;
+		app.tableData[2]['maxValue'] = 0;
+	}
 };
 
 // Initialize the app.
