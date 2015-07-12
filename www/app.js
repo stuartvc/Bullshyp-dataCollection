@@ -20,7 +20,9 @@ app.tableData = [
         { sensorName: 'total-accel', currentValue: 0, maxValue: 0},
 		{ sensorName: 'x-gyro', currentValue: 0, maxValue: 0},
         { sensorName: 'y-gyro', currentValue: 0, maxValue: 0},
-        { sensorName: 'z-gyro', currentValue: 0, maxValue: 0}
+        { sensorName: 'z-gyro', currentValue: 0, maxValue: 0},
+		{ sensorName: 'temp-humidity', currentValue: 0, maxValue: 0},
+        { sensorName: 'rel-humidity', currentValue: 0, maxValue: 0}
         ];
 
 /**
@@ -42,6 +44,26 @@ app.sensortag.MOVEMENT_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb';
 app.sensortag.KEYPRESS_SERVICE = '0000ffe0-0000-1000-8000-00805f9b34fb'
 app.sensortag.KEYPRESS_DATA = '0000ffe1-0000-1000-8000-00805f9b34fb'
 app.sensortag.KEYPRESS_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb'
+
+
+app.sensortag.TEMPERATURE_SERVICE = 'f000aa00-0451-4000-b000-000000000000'
+app.sensortag.TEMPERATURE_DATA = 'f000aa01-0451-4000-b000-000000000000'
+app.sensortag.TEMPERATURE_CONFIG = 'f000aa02-0451-4000-b000-000000000000'
+app.sensortag.TEMPERATURE_PERIOD = 'f000aa03-0451-4000-b000-000000000000'
+app.sensortag.TEMPERATURE_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb'
+
+app.sensortag.HUMIDITY_SERVICE = 'f000aa20-0451-4000-b000-000000000000'
+app.sensortag.HUMIDITY_DATA = 'f000aa21-0451-4000-b000-000000000000'
+app.sensortag.HUMIDITY_CONFIG = 'f000aa22-0451-4000-b000-000000000000'
+app.sensortag.HUMIDITY_PERIOD = 'f000aa23-0451-4000-b000-000000000000'
+app.sensortag.HUMIDITY_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb'
+
+app.sensortag.BAROMETER_SERVICE = 'f000aa40-0451-4000-b000-000000000000'
+app.sensortag.BAROMETER_DATA = 'f000aa41-0451-4000-b000-000000000000'
+app.sensortag.BAROMETER_CONFIG = 'f000aa42-0451-4000-b000-000000000000'
+app.sensortag.BAROMETER_CALIBRATION = 'f000aa43-0451-4000-b000-000000000000'
+app.sensortag.BAROMETER_PERIOD = 'f000aa44-0451-4000-b000-000000000000'
+app.sensortag.BAROMETER_NOTIFICATION = '00002902-0000-1000-8000-00805f9b34fb'
 
 /**
  * Initialise the application.
@@ -185,6 +207,7 @@ app.readServices = function(device)
 	device.readServices(
 		[
 		app.sensortag.MOVEMENT_SERVICE, // Movement service UUID.
+		app.sensortag.HUMIDITY_SERVICE,
 		app.sensortag.KEYPRESS_SERVICE
 		],
 		// Function that monitors accelerometer data.
@@ -256,7 +279,7 @@ app.startAccelerometerNotification = function(device)
 		app.sensortag.MOVEMENT_DATA,
 		function(data)
 		{
-			app.showInfo('Status: Data stream active - accelerometer');
+			//app.showInfo('Status: Data stream active - accelerometer');
 			var dataArray = new Uint8Array(data);
 			var values = app.getAccelerometerValues(dataArray);
 			app.updateMapAccel(values);
@@ -269,6 +292,68 @@ app.startAccelerometerNotification = function(device)
 		{
 			console.log('Error: enableNotification: ' + errorCode + '.');
 		});
+
+	// Set humidity configuration to ON.
+	device.writeCharacteristic(
+		app.sensortag.HUMIDITY_CONFIG,
+		new Uint8Array([1]),
+		function()
+		{
+			console.log('Status: writeCharacteristic ok.');
+		},
+		function(errorCode)
+		{
+			console.log('Error: writeCharacteristic: ' + errorCode + '.');
+		});
+
+	// Set humidity period to 100 ms.
+	device.writeCharacteristic(
+		app.sensortag.HUMIDITY_PERIOD,
+		new Uint8Array([10]),
+		function()
+		{
+			console.log('Status: writeCharacteristic ok.');
+		},
+		function(errorCode)
+		{
+			console.log('Error: writeCharacteristic: ' + errorCode + '.');
+		});
+
+	// Set humidity notification to ON.
+	device.writeDescriptor(
+		app.sensortag.HUMIDITY_DATA,
+		app.sensortag.HUMIDITY_NOTIFICATION, // Notification descriptor.
+		new Uint8Array([1,0]),
+		function()
+		{
+			console.log('Status: writeDescriptor ok.');
+		},
+		function(errorCode)
+		{
+			// This error will happen on iOS, since this descriptor is not
+			// listed when requesting descriptors. On iOS you are not allowed
+			// to use the configuration descriptor explicitly. It should be
+			// safe to ignore this error.
+			console.log('Error: writeDescriptor: ' + errorCode + '.');
+		});
+
+	// Start humidity notification.
+	device.enableNotification(
+		app.sensortag.HUMIDITY_DATA,
+		function(data)
+		{
+			app.showInfo('Status: Data stream active - humidity');
+			console.log('Status: Data stream active - humidity');
+			var dataArray = new Uint8Array(data);
+			var values = app.getHumidityValues(dataArray);
+			app.updateMapHumidity(values);
+			app.updateTable();
+		},
+		function(errorCode)
+		{
+			console.log('Error: enableNotification: ' + errorCode + '.');
+		});
+
 
 	// Set button notification to ON.
 	device.writeDescriptor(
@@ -335,6 +420,28 @@ app.getGyroscopeValues = function(data)
 	// Return result.
 	return { x: gx, y: gy, z: gz }
 };
+
+/**
+ * Calculate humidity values from raw data.
+ * @param data - an Uint8Array.
+ * @return Object with fields: humidityTemperature, relativeHumidity.
+ * @instance
+ * @public
+ */
+app.getHumidityValues = function(data)
+{
+	// Calculate the humidity temperature (Celsius).
+	var tData = evothings.util.littleEndianToInt16(data, 0)
+	var tc = -46.85 + 175.72 / 65536.0 * tData
+
+	// Calculate the relative humidity.
+	var hData = (evothings.util.littleEndianToInt16(data, 2) & ~0x03)
+	var h = -6.0 + 125.00 / 65536.0 * hData
+
+	// Return result.
+	return { humidityTemperature: tc, relativeHumidity: h }
+}
+
 
 /**
  * Plot diagram of sensor values.
@@ -418,15 +525,10 @@ app.updateTable = function(values)
 };
 
 app.updateMapAccel = function(values) {
-			app.showInfo('a');
 	app.tableData[0]['currentValue'] = values.x.toFixed(4) * 8;
-			app.showInfo('b');
 	app.tableData[1]['currentValue'] = values.y.toFixed(4) * 8;
-			app.showInfo('c');
 	app.tableData[2]['currentValue'] = values.z.toFixed(4) * 8;
-			app.showInfo('d');
 	app.tableData[3]['currentValue'] = app.calculateTotalAccel(values).toFixed(4) * 8;
-			app.showInfo('e');
 
 	if (app.tableData[0]['maxValue'] <= Math.abs(values.x * 8))
 	{
@@ -475,6 +577,20 @@ app.updateMapGyro = function(values) {
 		app.tableData[7]['maxValue'] = calculateTotalAccel(values).toFixed(4) * 8;
 	}*/
 	//averages
+};
+
+app.updateMapHumidity = function(values) {
+	app.tableData[7]['currentValue'] = values.humidityTemperature.toFixed(4);
+	app.tableData[8]['currentValue'] = values.relativeHumidity.toFixed(4);
+
+	if (app.tableData[7]['maxValue'] <= Math.abs(values.humidityTemperature))
+	{
+		app.tableData[7]['maxValue'] = Math.abs(values.humidityTemperature.toFixed(4));
+	}
+	if (app.tableData[8]['maxValue'] <= Math.abs(values.relativeHumidity))
+	{
+		app.tableData[8]['maxValue'] = Math.abs(values.relativeHumidity.toFixed(4));
+	}
 };
 
 app.keyPressHandler = function(values)
