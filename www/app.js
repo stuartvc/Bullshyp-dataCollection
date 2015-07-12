@@ -183,7 +183,7 @@ app.startAccelerometerNotification = function(device)
 	// 3-axis acc. + 3-axis gyro + magnetometer on: 127 (1111111)
 	device.writeCharacteristic(
 		app.sensortag.MOVEMENT_CONFIG,
-		new Uint8Array([56,0]),
+		new Uint8Array([56,3]),
 		function()
 		{
 			console.log('Status: writeCharacteristic ok.');
@@ -282,7 +282,7 @@ app.drawDiagram = function(values)
 	{
 		// Return Y coordinate for this value.
 		var diagramY =
-			((value * canvas.height) / 2)
+			((value * canvas.height) / 4)
 			+ (canvas.height / 2);
 		return diagramY;
 	}
