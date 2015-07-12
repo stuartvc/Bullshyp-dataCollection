@@ -16,7 +16,8 @@ app.dataPoints = [];
 app.tableData = [
 		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
         { sensorName: 'y-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
-        { sensorName: 'z-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' }
+        { sensorName: 'z-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' },
+        { sensorName: 'total-accel', currentValue: 0, maxValue: 0, average: '0' , counter: '0' }
         ];
 
 /**
@@ -387,24 +388,37 @@ app.updateTable = function(values)
     }
     
     function updateMap(newData) {
-    	app.tableData[0]['currentValue'] = values.x.toFixed(4) * 8;
-    	app.tableData[1]['currentValue'] = values.y.toFixed(4) * 8;
-    	app.tableData[2]['currentValue'] = values.z.toFixed(4) * 8;
+    	app.tableData[0]['currentValue'] = newData.x.toFixed(4) * 8;
+    	app.tableData[1]['currentValue'] = newData.y.toFixed(4) * 8;
+    	app.tableData[2]['currentValue'] = newData.z.toFixed(4) * 8;
+    	app.tableData[3]['currentValue'] = calculateTotalAccel(newData).toFixed(4) * 8;
 
-    	if (app.tableData[0]['maxValue'] <= Math.abs(values.x * 8))
+    	if (app.tableData[0]['maxValue'] <= Math.abs(newData.x * 8))
     	{
-    		app.tableData[0]['maxValue'] = Math.abs(values.x.toFixed(4) * 8);
+    		app.tableData[0]['maxValue'] = Math.abs(newData.x.toFixed(4) * 8);
     	}
-    	if (app.tableData[1]['maxValue'] <= Math.abs(values.y * 8))
+    	if (app.tableData[1]['maxValue'] <= Math.abs(newData.y * 8))
     	{
-    		app.tableData[1]['maxValue'] = Math.abs(values.y.toFixed(4) * 8);
+    		app.tableData[1]['maxValue'] = Math.abs(newData.y.toFixed(4) * 8);
     	}
-    	if (app.tableData[2]['maxValue'] <= Math.abs(values.z * 8))
+    	if (app.tableData[2]['maxValue'] <= Math.abs(newData.z * 8))
     	{
-    		app.tableData[2]['maxValue'] = Math.abs(values.z.toFixed(4) * 8);
+    		app.tableData[2]['maxValue'] = Math.abs(newData.z.toFixed(4) * 8);
+    	}
+    	if (app.tableData[3]['maxValue'] <= calculateTotalAccel(newData) * 8)
+    	{
+    		app.tableData[3]['maxValue'] = calculateTotalAccel(newData).toFixed(4) * 8;
     	}
     	//averages
     }
+
+    function calculateTotalAccel(vectorArray)
+    {
+    	return Math.sqrt(Math.pow(vectorArray.x, 2) + Math.pow(vectorArray.y, 2) + Math.pow(vectorArray.z, 2));
+    }
+
+
+
     updateMap(values);
     loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
 };
@@ -423,9 +437,11 @@ app.resetData = function(test)
 	app.tableData[0]['currentValue'] = 0;
 	app.tableData[1]['currentValue'] = 0;
 	app.tableData[2]['currentValue'] = 0;
+	app.tableData[3]['currentValue'] = 0;
 	app.tableData[0]['maxValue'] = 0;
 	app.tableData[1]['maxValue'] = 0;
 	app.tableData[2]['maxValue'] = 0;
+	app.tableData[3]['maxValue'] = 0;
 };
 
 // Initialize the app.
