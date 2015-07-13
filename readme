@@ -1,8 +1,15 @@
-run the following commands:
+To run using Evothings:
+- open evothings workbench
+- navigate to the folder Bullshyp-dataCollection/www
+- drag index.html to evothings workbench
+- run evothings on smartphone and connect to the computer
+- run code from evothings workbench
 
-cordova platforms add android
-
-cordova run android
-
+To run using Cordova
+- install cordova as shown here http://evothings.com/doc/build/cordova-install-windows.html
+- connect smartphone to computer via USB
+- run the following commands
+  - cordova platforms add android
+  - cordova run android
 
 see this page for help: https://cordova.apache.org/docs/en/4.0.0/guide_platforms_android_index.md.html
