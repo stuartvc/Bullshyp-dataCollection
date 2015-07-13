@@ -17,10 +17,10 @@ app.tableData = [
 		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0},
         { sensorName: 'y-accel', currentValue: 0, maxValue: 0},
         { sensorName: 'z-accel', currentValue: 0, maxValue: 0},
-        { sensorName: 'total-accel', currentValue: 0, maxValue: 0},
+        { sensorName: 'total-accel', currentValue: 0, maxValue: 0}/*,
 		{ sensorName: 'temp-humidity', currentValue: 0, maxValue: 0},
         { sensorName: 'rel-humidity', currentValue: 0, maxValue: 0},
-        { sensorName: 'amb-temp', currentValue: 0, maxValue: 0}
+        { sensorName: 'amb-temp', currentValue: 0, maxValue: 0}*/
         ];
 
 /**
@@ -545,7 +545,7 @@ app.calculateTotalAccel = function(vectorArray)
 };
 
 app.updateMapHumidity = function(values) {
-	app.tableData[4]['currentValue'] = values.humidityTemperature.toFixed(4);
+	/*app.tableData[4]['currentValue'] = values.humidityTemperature.toFixed(4);
 	app.tableData[5]['currentValue'] = values.relativeHumidity.toFixed(4);
 
 	if (app.tableData[4]['maxValue'] <= Math.abs(values.humidityTemperature))
@@ -555,17 +555,17 @@ app.updateMapHumidity = function(values) {
 	if (app.tableData[5]['maxValue'] <= Math.abs(values.relativeHumidity))
 	{
 		app.tableData[5]['maxValue'] = Math.abs(values.relativeHumidity.toFixed(4));
-	}
+	}*/
 };
 
 
 app.updateMapTemperature = function(values) {
-	app.tableData[6]['currentValue'] = values.ambientTemperature.toFixed(4);
+	/*app.tableData[6]['currentValue'] = values.ambientTemperature.toFixed(4);
 
 	if (app.tableData[6]['maxValue'] <= Math.abs(values.ambientTemperature))
 	{
 		app.tableData[6]['maxValue'] = Math.abs(values.ambientTemperature.toFixed(4));
-	}
+	}*/
 };
 
 app.keyPressHandler = function(values)
@@ -583,16 +583,10 @@ app.resetData = function(test)
 	app.tableData[1]['currentValue'] = 0;
 	app.tableData[2]['currentValue'] = 0;
 	app.tableData[3]['currentValue'] = 0;
-	app.tableData[4]['currentValue'] = 0;
-	app.tableData[5]['currentValue'] = 0;
-	app.tableData[6]['currentValue'] = 0;
 	app.tableData[0]['maxValue'] = 0;
 	app.tableData[1]['maxValue'] = 0;
 	app.tableData[2]['maxValue'] = 0;
 	app.tableData[3]['maxValue'] = 0;
-	app.tableData[4]['maxValue'] = 0;
-	app.tableData[5]['maxValue'] = 0;
-	app.tableData[6]['maxValue'] = 0;
 };
 
 app.logData = function()
