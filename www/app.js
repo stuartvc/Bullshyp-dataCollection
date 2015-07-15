@@ -17,7 +17,8 @@ app.tableData = [
 		{ sensorName: 'x-accel', currentValue: 0, maxValue: 0},
         { sensorName: 'y-accel', currentValue: 0, maxValue: 0},
         { sensorName: 'z-accel', currentValue: 0, maxValue: 0},
-        { sensorName: 'total-accel', currentValue: 0, maxValue: 0}/*,
+        { sensorName: 'total-accel', currentValue: 0, maxValue: 0},
+        { sensorName: 'broken', currentValue: 0, maxValue: 0}/*,
 		{ sensorName: 'temp-humidity', currentValue: 0, maxValue: 0},
         { sensorName: 'rel-humidity', currentValue: 0, maxValue: 0},
         { sensorName: 'amb-temp', currentValue: 0, maxValue: 0}*/
@@ -129,6 +130,20 @@ app.onResetButton = function()
 app.onLogButton = function()
 {
 	app.logData();
+};
+
+app.onBrokenButton = function()
+{
+	document.getElementById('broken').innerHTML = "broken";
+	app.tableData[4]['maxValue'] = 1;
+	app.onLogButton();
+};
+
+app.onNotBrokenButton = function()
+{
+	document.getElementById('broken').innerHTML = "not broken";
+	app.tableData[4]['maxValue'] = 0;
+	app.onLogButton();
 };
 
 app.startConnectTimer = function()
@@ -265,7 +280,7 @@ app.startAccelerometerNotification = function(device)
 		app.sensortag.MOVEMENT_DATA,
 		function(data)
 		{
-			//app.showInfo('Status: Data stream active - accelerometer');
+			app.showInfo('Status: Data stream active - accelerometer');
 			var dataArray = new Uint8Array(data);
 			var values = app.getAccelerometerValues(dataArray);
 			app.updateMapAccel(values);
@@ -582,18 +597,21 @@ app.resetData = function(test)
 	app.tableData[0]['currentValue'] = 0;
 	app.tableData[1]['currentValue'] = 0;
 	app.tableData[2]['currentValue'] = 0;
-	app.tableData[3]['currentValue'] = 0;
+	app.tableData[4]['currentValue'] = 0;
+	app.tableData[3]['maxValue'] = 0;
 	app.tableData[0]['maxValue'] = 0;
 	app.tableData[1]['maxValue'] = 0;
 	app.tableData[2]['maxValue'] = 0;
 	app.tableData[3]['maxValue'] = 0;
+	app.tableData[4]['maxValue'] = 0;
+	document.getElementById('broken').innerHTML = "not broken";
 };
 
 app.logData = function()
 {
 
 	function gotFS(fileSystem) {
-	    fileSystem.root.getFile("log1.txt", {create: true, exclusive: false}, gotFileEntry, fail);
+	    fileSystem.root.getFile("logData.csv", {create: true, exclusive: false}, gotFileEntry, fail);
 	}
 
 	function gotFileEntry(fileEntry) {
@@ -616,7 +634,8 @@ app.logData = function()
 		string += app.tableData[0]['maxValue'] + ",";
 		string += app.tableData[1]['maxValue'] + ",";
 		string += app.tableData[2]['maxValue'] + ",";
-		string += app.tableData[3]['maxValue'];
+		string += app.tableData[3]['maxValue'] + ",";
+		string += app.tableData[4]['maxValue'];
 		string += "\n";
 
 		return string;
