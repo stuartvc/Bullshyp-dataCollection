@@ -54,41 +54,27 @@ app.onDeviceReady = function()
 
 app.showInfo = function(info)
 {
+	//change this TODO
 	document.getElementById('info').innerHTML = info;
 	//console.log(info);
 };
 
-app.onStartButton = function()
+app.startSensorTag = function()
 {
-	app.onStopButton();
+	app.stopSensorTag();
 	app.startScan();
 	app.showInfo('Status: Scanning...');
 	app.startConnectTimer();
-};
+}
 
-app.onStopButton = function()
+app.stopSensorTag = function()
 {
 	// Stop any ongoing scan and close devices.
 	app.stopConnectTimer();
 	evothings.easyble.stopScan();
 	evothings.easyble.closeConnectedDevices();
 	app.showInfo('Status: Stopped.');
-};
-
-app.onResetButton = function()
-{
-	app.resetData();
-	app.updateTable();
-};
-
-app.onLogButton = function()
-{
-	var array = app.getFeatureVector();
-
-	var string = array.join();
-
-	app.showInfo(string);
-};
+}
 
 app.startConnectTimer = function()
 {
@@ -226,7 +212,6 @@ app.startAccelerometerNotification = function(device)
 			var dataArray = new Uint8Array(data);
 			var values = app.getAccelerometerValues(dataArray);
 			app.updateMapAccel(values);
-			app.updateTable();
 		},
 		function(errorCode)
 		{
@@ -270,32 +255,6 @@ app.getAccelerometerValues = function(data)
 
 	// Return result.
 	return { x: ax, y: ay, z: az };
-};
-
-/**
- * Update table of sensor values.
- * Values are expected to be between -1 and 1
- * and in the form of objects with fields x, y, z.
- */
-app.updateTable = function()
-{
-	var table = document.getElementById('table');
-
-    function loadTable(tableId, fields, data) {
-        //$('#' + tableId).empty(); //not really necessary
-        var rows = '';
-        $.each(data, function(index, item) {
-            var row = '<tr>';
-            $.each(fields, function(index, field) {
-                row += '<td>' + item[field+''] + '</td>';
-            });
-            rows += row + '</tr>';
-        });
-		var table = document.getElementById('table');
-        $('#' + 'table' + ' tbody').html(rows);
-    }
-    
-    loadTable('table', ['sensorName', 'currentValue', 'maxValue'], app.tableData);
 };
 
 app.updateMapAccel = function(values) {
@@ -359,6 +318,31 @@ app.getFeatureVector = function()
 
 	return featureVector;
 }
+
+//remove this
+app.onStartButton = function()
+{
+	app.startSensorTag();
+};
+
+app.onStopButton = function()
+{
+	app.stopSensorTag();
+};
+
+app.onResetButton = function()
+{
+	app.resetData();
+};
+
+app.onLogButton = function()
+{
+	var array = app.getFeatureVector();
+
+	var string = array.join();
+
+	app.showInfo(string);
+};
 
 // Initialize the app.
 app.initialize();
